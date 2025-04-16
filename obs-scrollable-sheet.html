@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+    }
+    iframe {
+      width: 100vw;
+      height: 100vh;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <iframe id="sheet" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQufWsviAfxWoeybkaCZYh4TzSs0RnYQiVXCskQF2rkxVCON8A7Wp39j7lXlp8VFBPALYLKrR1P_0XO/pubhtml?gid=1824481089&single=true&widget=true&headers=false"></iframe>
+
+  <script>
+    const sheet = document.getElementById("sheet");
+    let scrollPos = 0;
+
+    async function checkScrollCommand() {
+      try {
+        const response = await fetch("https://docs.google.com/spreadsheets/d/1iELr8BJcuFgQoDP-E_W_gD9J6OV0eei1O2BznKLa9js/gviz/tq?tq=SELECT+Z&sheet=Sheet1");
+        const text = await response.text();
+        const json = JSON.parse(text.replace(/^.*?\n/, '')); // strip unnecessary prefix
+        const command = json.table.rows[0].c[0]?.v || "";
+
+        const scrollWindow = sheet.contentWindow;
+        if (!scrollWindow) return;
+
+        if (command === "DOWN") {
+          scrollPos += 100;
+        } else if (command === "UP") {
+          scrollPos = Math.max(0, scrollPos - 100);
+        } else if (command === "RESET") {
+          scrollPos = 0;
+        }
+
+        scrollWindow.scrollTo(0, scrollPos);
+      } catch (e) {
+        console.error("Error fetching scroll command:", e);
+      }
+    }
+
+    setInterval(checkScrollCommand, 2000); // Check every 2 seconds
+  </script>
+</body>
+</html>
